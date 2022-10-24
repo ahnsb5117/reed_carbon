@@ -63,5 +63,5 @@ df[
 ]
 
 df <- df %>% 
-  mutate(zip_tot_dist = NUMB*distance_metres) %>% 
-  mutate(cum_tot_dist = map_dbl(zip_tot_dist, sum))
+  mutate(zip_tot_dist = NUMB*distance_metres)
+
