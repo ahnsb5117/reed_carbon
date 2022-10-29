@@ -8,10 +8,10 @@ raw_zipcode<- read_csv("zipcode_dat.csv")
 
 df <- raw_zipcode %>% 
   drop_na()%>% 
-  mutate(ZIP_END = "97202")
+  mutate(ZIP_END = "97218")
 
 
-
+#have the method and data part
 
 ## Convert the zip codes to data.table so we can join on them
 ## I'm using the centroid of the zipcodes (lng and lat).
@@ -62,6 +62,29 @@ df[
   )
 ]
 
+#City of Portland Source
+#https://www.portlandoregon.gov/revenue/article/373203
+portland_zipcode <- read_csv("portland_zipcode.csv",  col_types = cols(.default = col_character()))
+
+# RPK : Revenue Passenger Kilometers average at 2019 : 90g of CO2
+# https://theicct.org/sites/default/files/publications/CO2-commercial-aviation-oct2020.pdf
 df <- df %>% 
   mutate(zip_tot_dist = NUMB*distance_metres) %>% 
-  mutate(cum_tot_dist = map_dbl(zip_tot_dist, sum))
+  mutate(distance_reed_pdx = "20.9215") %>% 
+  mutate(RPK = "90") %>% 
+  mutate(portland_native = ifelse(df$ZIP == portland_zipcode$zipcode, "yes","no"))
+  
+
+df <- read_csv("Ahn-Data_intl_flight.csv")
+
+
+
+
+library(airportr)
+airport_distance("YVR", "PDX")
+
+
+write.csv(df,"Ahn-Data.csv")
+
+  
+
