@@ -74,13 +74,17 @@ df <- df %>%
   mutate(RPK = "90") %>% 
   mutate(portland_native = ifelse(df$ZIP == portland_zipcode$zipcode, "yes","no"))
   
-  
+
+df <- read_csv("Ahn-Data_intl_flight.csv")
 
 
 
-  
-write.csv(df,"Ahn-Data_no_intl.csv")
 
 library(airportr)
-airport_distance("ICN", "PDX")
+airport_distance("YVR", "PDX")
+
+
+write.csv(df,"Ahn-Data.csv")
+
+  
 
