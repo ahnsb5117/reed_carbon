@@ -11,7 +11,7 @@ df <- raw_zipcode %>%
   mutate(ZIP_END = "97218")
 
 
-
+#have the method and data part
 
 ## Convert the zip codes to data.table so we can join on them
 ## I'm using the centroid of the zipcodes (lng and lat).
@@ -74,9 +74,13 @@ df <- df %>%
   mutate(RPK = "90") %>% 
   mutate(portland_native = ifelse(df$ZIP == portland_zipcode$zipcode, "yes","no"))
   
+  
 
 
 
   
-write.csv(df,"Ahn-Data.csv")
+write.csv(df,"Ahn-Data_no_intl.csv")
+
+library(airportr)
+airport_distance("ICN", "PDX")
 
