@@ -68,29 +68,40 @@ portland_zipcode <- read_csv("portland_zipcode.csv",  col_types = cols(.default 
 
 # RPK : Revenue Passenger Kilometers average at 2019 : 90g of CO2
 # https://theicct.org/sites/default/files/publications/CO2-commercial-aviation-oct2020.pdf
+# If we assume, people within certain distance are driving. Per capita in mileage
 df <- df %>% 
   mutate(zip_tot_dist = round(NUMB*distance_metres/1000, digit = 2)) %>% 
-  mutate(distance_reed_pdx = "20.9215") %>% 
-  mutate(RPK = "90") %>% 
+  mutate(distance_reed_pdx = 20.9215) %>% 
+  mutate(co2_emission_air_km = 90) %>% 
   mutate(portland_native = ifelse(df$ZIP == portland_zipcode$zipcode, "yes","no")) %>% 
-  mutate(num = c(1:1079)) 
-  
-  
+  mutate(num = c(1:1079)) %>% 
+  mutate(car_fuel_econ = 10.93) # KM per L from US GOVERN EPA
 
+  
+#2022 Fuel Economy 
 
 intl_flight <- read_csv("Ahn-Data_intl_flight.csv")
 
 intl_flight <- intl_flight %>% 
-  drop_na() %>% 
   mutate(num_flight = ...1) %>% 
-  select(-c(...1,...2,portland_native)) %>% 
-  drop_na()
+  select(-c(...1,...2,portland_native))
 
-  
 
 df <- df %>% 
   full_join(intl_flight, by = c("num" = "num_flight"), keep = TRUE) %>% 
   select(-num_flight)
+  
+df <- df %>% 
+  select(-airplane_distance) %>% 
+  mutate(co2_emission_car_km = 251.03) %>% 
+#epa sources pdf and site : https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle
+  mutate(tot_co2_output = (distance_km * co2_emission_air_km + co2_emission_car_km * df$distance_reed_pdx)) %>% 
+  mutate(everyones_output = sum(tot_co2_output , na.rm = TRUE)) %>% 
+
+write_csv(df,"Ahn-Data.csv")
+
+#which(is.na(df[1:985]))
+
 #   
 # airport_distance(paste0('"',ACC,'"'), paste0('"',PDX,'"'))
 # print(paste0('`',intl_flight$international[1],'`'))
