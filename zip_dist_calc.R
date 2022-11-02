@@ -97,6 +97,8 @@ df <- df %>%
 #epa sources pdf and site : https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle
   mutate(tot_co2_output = (distance_km * co2_emission_air_km + co2_emission_car_km * df$distance_reed_pdx)) %>% 
   mutate(everyones_output = sum(tot_co2_output , na.rm = TRUE)) %>% 
+  drop_na()
+
 
 write_csv(df,"Ahn-Data.csv")
 
