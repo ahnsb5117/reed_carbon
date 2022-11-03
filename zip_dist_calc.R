@@ -72,7 +72,7 @@ df[
 
 # RPK : Revenue Passenger Kilometers average at 2019 : 90g of CO2
 # https://theicct.org/sites/default/files/publications/CO2-commercial-aviation-oct2020.pdf
-# If we assume, people within certain distance are driving. Per capita in mileage
+# All in Kilometers or converted to Kilometers
 df <- df %>% 
   mutate(zip_tot_dist = round(NUMB*distance_metres/1000, digit = 2)) %>% 
   mutate(distance_reed_pdx = 20.9215) %>% # From Google maps
