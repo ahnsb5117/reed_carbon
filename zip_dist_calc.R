@@ -72,7 +72,7 @@ df[
 
 # RPK : Revenue Passenger Kilometers average at 2019 : 90g of CO2
 # https://theicct.org/sites/default/files/publications/CO2-commercial-aviation-oct2020.pdf
-# If we assume, people within certain distance are driving. Per capita in mileage
+# All in Kilometers or converted to Kilometers
 df <- df %>% 
   mutate(zip_tot_dist = round(NUMB*distance_metres/1000, digit = 2)) %>% 
   mutate(distance_reed_pdx = 20.9215) %>% # From Google maps
@@ -83,7 +83,7 @@ df <- df %>%
 
   
 #2022 Fuel Economy 
-intl_flight <- read_csv("Ahn-Data_intl_flight.csv")
+intl_flight <- read_csv("VanLandSchoot_Ahn-Data_intl_flight.csv")
 
 intl_flight <- intl_flight %>% 
   mutate(num_flight = ...1) %>% 
@@ -110,18 +110,18 @@ df <- df %>%
   
 state_df <- df %>% 
   group_by(state) %>% 
-  summarise(state_emission = sum(distance_km * co2_emission_air_km + co2_emission_car_km * distance_reed_pdx))
+  summarise(state_emission = sum(distance_km * co2_emission_air_km/1000000  + co2_emission_car_km * distance_reed_pdx))
 
 percap_state <- df %>% 
   group_by(state) %>% 
-  summarise(state_emission = sum((distance_km * co2_emission_air_km + co2_emission_car_km * distance_reed_pdx))/(sum(NUMB)))
+  summarise(state_emission = sum((distance_km * co2_emission_air_km/1000000  + co2_emission_car_km * distance_reed_pdx))/(sum(NUMB)))
 
 ### GRAPH
 
 p_state_df<-ggplot(data=percap_state, aes(x=reorder(state, state_emission), y=state_emission)) +
   geom_bar(stat="identity") +
   theme_minimal() +
-  ylab("CO2 emission in grams")+
+  ylab("CO2 emission in tonnes")+
   xlab("State")+
   coord_flip()
 p_state_df
@@ -129,7 +129,7 @@ p_state_df
 p_percap_state<-ggplot(data=percap_state, aes(x=reorder(state, state_emission), y=state_emission)) +
   geom_bar(stat="identity") +
   theme_minimal() +
-  ylab("CO2 emission in grams")+
+  ylab("CO2 emission in tonnes per capita")+
   xlab("State")+
   coord_flip()
 p_percap_state
@@ -137,4 +137,4 @@ p_percap_state
 # We can see that Oregon and Washington state has the lowest per capita emission,
 # Maine and Hawaii has the highest CO2 emission in grams 
 
-write_csv(df,"Ahn-Data.csv")
+write_csv(df,"VanLandSchoot_Ahn-Data.csv")
