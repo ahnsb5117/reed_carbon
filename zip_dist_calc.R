@@ -14,127 +14,91 @@ portland_zipcode <- read_csv("portland_zipcode.csv",  col_types = cols(.default 
 #City of Portland Source
 #https://www.portlandoregon.gov/revenue/article/373203
 
-###DATA WRANGLING
-
-df <- raw_zipcode %>% 
-  drop_na()%>% 
-  mutate(ZIP_END = "97218") #PDX ZIPCODE
-
-
-#Have the method and data part
-
-### Distance from Zipcode
-dt_zips <- as.data.table( zip_code_db[, c("zipcode", "lng", "lat")])
-
-# convert the input data.frame into a data.table
-setDT(df)
-
-# the postcodes need to be characters
-df[
-  , `:=`(
-    ZIP = as.character(ZIP)
-    , ZIP_END = as.character(ZIP_END)
-  )
-]
-
-# Attach origin lon & lat using a join
-df[
-  dt_zips
-  , on = .(ZIP = zipcode)
-  , `:=`(
-    lng_start = lng
-    , lat_start = lat
-  )
-]
-
-# Attach destination lon & lat using a join
-df[
-  dt_zips
-  , on = .(ZIP_END = zipcode)
-  , `:=`(
-    lng_end = lng
-    , lat_end = lat
-  )
-]
-
-## calculate the distance
-df[
-  , distance_metres := geodist::geodist_vec(
-    x1 = lng_start
-    , y1 = lat_start
-    , x2 = lng_end
-    , y2 = lat_end
-    , paired = TRUE
-    , measure = "haversine"
-  )
-]
-
-
-# RPK : Revenue Passenger Kilometers average at 2019 : 90g of CO2
-# https://theicct.org/sites/default/files/publications/CO2-commercial-aviation-oct2020.pdf
-# All in Kilometers or converted to Kilometers
-df <- df %>% 
-  mutate(zip_tot_dist = round(NUMB*distance_metres/1000, digit = 2)) %>% 
-  mutate(distance_reed_pdx = 20.9215) %>% # From Google maps
-  mutate(co2_emission_air_km = 90) %>%  # RPK
-  mutate(portland_native = ifelse(df$ZIP == portland_zipcode$zipcode, "yes","no")) %>% 
-  mutate(num = c(1:1079)) %>% 
-  mutate(car_fuel_econ = 10.93) # KM per L from US GOVERN EPA converted
-
-  
-#2022 Fuel Economy 
-intl_flight <- read_csv("VanLandSchoot_Ahn-Data_intl_flight.csv")
-
-intl_flight <- intl_flight %>% 
+intl_flight <- read_csv("intl_flight.csv") %>% 
   mutate(num_flight = ...1) %>% 
   select(-c(...1,...2,portland_native))
 
+###DATA WRANGLING
 
-df <- df %>% 
-  full_join(intl_flight, by = c("num" = "num_flight"), keep = TRUE) %>% 
-  select(-num_flight)
-  
-df <- df %>% 
-  select(-airplane_distance) %>% 
-  mutate(co2_emission_car_km = 251.03) %>% 
-#epa sources pdf and site : https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle
-  mutate(tot_co2_output = (distance_km * co2_emission_air_km + co2_emission_car_km * distance_reed_pdx)) %>% 
-  mutate(everyones_output = sum(tot_co2_output , na.rm = TRUE)) %>% 
-  drop_na()
+datr <- raw_zipcode %>% 
+  drop_na()%>% 
+  mutate(ZIP_END = "97218") #PDX ZIPCODE
 
-df <- df %>% 
-  mutate(ZIP = as.double(ZIP)) %>% 
-  full_join(zip_div_state, by = c("ZIP" = "ZIP"), keep = TRUE) %>% 
-  select(-c(ZIP.y,`ZCTA parent`)) %>% 
-  drop_na()
-  
-state_df <- df %>% 
-  group_by(state) %>% 
-  summarise(state_emission = sum(distance_km * co2_emission_air_km/1000000  + co2_emission_car_km * distance_reed_pdx))
+datr$distance <- (zip_distance(97202, datr$ZIP, units = "meters")$distance)
+datr$distance_air <- (zip_distance(datr$ZIP_END, datr$ZIP, units = "meters")$distance)
 
-percap_state <- df %>% 
-  group_by(state) %>% 
-  summarise(state_emission = sum((distance_km * co2_emission_air_km/1000000  + co2_emission_car_km * distance_reed_pdx))/(sum(NUMB)))
+stat_zip <- zip_code_db %>% select(zipcode, state) %>%
+  rename(ZIP = zipcode)
+
+datr <- left_join(datr, stat_zip, by = "ZIP") 
+
+df <- datr %>%
+  mutate(num = 1:1079) %>%
+  left_join(intl_flight, by = c("num" = "num_flight"), keep = TRUE) %>% 
+  mutate(ZIP = case_when(international == "yes" ~ "International",
+                         TRUE ~ ZIP),
+         state = case_when(international == "yes" ~ "INTL",
+                           TRUE ~ state)) %>%
+  mutate(distance = distance/1000,
+         distance_air = distance_air/1000,
+         mode = case_when(distance < 1000 ~ "Drive",
+                          distance >= 1000 ~ "Fly",
+                          international == "yes" ~ "Fly"),
+         distance_car = case_when(mode == "Fly" ~ 19.3121,
+                                  international == "yes" ~ 19.3121,
+                                  mode == "Drive" ~ distance),
+         distance_air = case_when(mode == "Drive" ~ 0,
+                                  international == "yes" ~ distance_km,
+                                  mode == "Fly" ~ distance_air),
+         portland_native = case_when(ZIP %in% portland_zipcode$zipcode ~ "Native",
+                                     TRUE ~ "Non-Native")) %>%
+  select(-c(distance, pdx_airport, airplane_distance, ZIP_END, num, num_flight)) %>% 
+  mutate(total_emission_air = case_when(international == "no" ~ 4 * distance_air * 0.000099208,
+                                        international == "yes" ~ 2 * distance_air * 0.000099208), 
+         # 90g of CO2 equivalent per km to tonnes, assuming 2 round-trips per year for non-intl student and 1 for intl students 
+         # https://theicct.org/sites/default/files/publications/CO2-commercial-aviation-oct2020.pdf
+         total_emission_car = case_when(international == "no" ~ 4 * distance_car * 0.000251034585607,
+                                        international == "yes" ~ 2 * distance_car * 0.000251034585607),
+         # 251g of CO2 equiv per km to tonnes, , assuming 2 round-trips per year for non-intl student and 1 for intl students 
+         # https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle
+         ind_emission_gas = (0.0004127687 * 293.071 * (63367 + 58921 + 59168)) / (1471	+ 1385	+ 1566),
+         # (0.0004127687 tonnes of CO2/kwh * 293.071 kwh/MMBTU * (63,367 + 58,921 + 59,168)MMBTU) / (1,471	+ 1,385	+ 1,566) students = tons of CO2 per student
+         # https://www.eia.gov/tools/faqs/faq.php?id=74&t=11
+         ind_emission_electric = (0.0004490564 * (11135877 + 10159517 + 10561212)) / (1471	+ 1385	+ 1566)
+         # (0.0004490564 tonnes of CO2 / kWh * (11,135,877 + 10,159,517 + 10,561,212)) / (1,471	+ 1,385	+ 1,566) students = tons of CO2 per student
+         # https://www.eia.gov/tools/faqs/faq.php?id=74&t=11 
+         ) %>%
+  group_by(state) %>%
+  mutate(state_emission = sum(total_emission_air + total_emission_car, na.rm = T),
+         state_emission_per_cap = sum(total_emission_air + total_emission_car, na.rm = T)/sum(NUMB)) %>%
+  filter(state != "NA") %>%
+  ungroup() %>%
+  rename(zip = ZIP,
+         num = NUMB)
 
 ### GRAPH
 
-p_state_df<-ggplot(data=percap_state, aes(x=reorder(state, state_emission), y=state_emission)) +
-  geom_bar(stat="identity") +
-  theme_minimal() +
-  ylab("CO2 emission in tonnes")+
-  xlab("State")+
-  coord_flip()
-p_state_df
+df %>%
+  select(state, state_emission) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, state_emission), y = state_emission)) +
+    geom_bar(stat = "identity") +
+    theme_minimal() +
+    ylab("CO2 emission in tonnes") +
+    xlab("State") +
+    coord_flip()
 
-p_percap_state<-ggplot(data=percap_state, aes(x=reorder(state, state_emission), y=state_emission)) +
-  geom_bar(stat="identity") +
-  theme_minimal() +
-  ylab("CO2 emission in tonnes per capita")+
-  xlab("State")+
-  coord_flip()
-p_percap_state
+df %>%
+  select(state, state_emission_per_cap) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, state_emission_per_cap), y = state_emission_per_cap)) +
+    geom_bar(stat = "identity") +
+    theme_minimal() +
+    ylab("CO2 emission in tonnes per capita") +
+    xlab("State") +
+    coord_flip()
 
 # We can see that Oregon and Washington state has the lowest per capita emission,
 # Maine and Hawaii has the highest CO2 emission in grams 
 
-write_csv(df,"VanLandSchoot_Ahn-Data.csv")
+write_csv(dat_f,"Data.csv")
