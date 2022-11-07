@@ -88,6 +88,17 @@ df %>%
     xlab("State") +
     coord_flip()
 
+# df %>%
+#   pivot_longer(10:11) %>%
+#   ggplot(aes(x = state, y = value, fill = name)) +
+#   geom_bar(stat = "identity") +
+#   theme_minimal() +
+#   ylab("CO2 emission in tonnes") +
+#   xlab("State") +
+#   coord_flip()
+
+ggsave("state_emissions.png")
+
 df %>%
   select(state, state_emission_per_cap) %>%
   unique() %>%
@@ -98,7 +109,12 @@ df %>%
     xlab("State") +
     coord_flip()
 
+ggsave("state_emissions_per_cap.png")
+
 # We can see that Oregon and Washington state has the lowest per capita emission,
 # Maine and Hawaii has the highest CO2 emission in grams 
 
-write_csv(dat_f,"Data.csv")
+write_csv(df,"VanLandschoot_Ahn_Data.csv")
+
+library("xlsx")
+write.xlsx(df,"VanLandschoot_Ahn_Data.xlsx")
