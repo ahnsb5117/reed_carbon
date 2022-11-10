@@ -3,6 +3,7 @@ library(tidyverse)
 library(zipcodeR)
 library(data.table)
 library(geodist)
+#No changes 
 
 ### IMPORT DATA
 raw_zipcode<- read_csv("zipcode_dat.csv") # Instutional Resource at Reed
