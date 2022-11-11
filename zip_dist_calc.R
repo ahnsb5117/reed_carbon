@@ -3,6 +3,7 @@ library(tidyverse)
 library(zipcodeR)
 library(data.table)
 library(geodist)
+#No changes 
 
 ### IMPORT DATA
 raw_zipcode<- read_csv("zipcode_dat.csv") # Instutional Resource at Reed
@@ -23,6 +24,7 @@ intl_flight <- read_csv("intl_flight.csv") %>%
 datr <- raw_zipcode %>% 
   drop_na()%>% 
   mutate(ZIP_END = "97218") #PDX ZIPCODE
+
 
 datr$distance <- (zip_distance(97202, datr$ZIP, units = "meters")$distance)
 datr$distance_air <- (zip_distance(datr$ZIP_END, datr$ZIP, units = "meters")$distance)
