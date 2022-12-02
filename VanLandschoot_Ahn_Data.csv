@@ -1,4 +1,4 @@
-zip,num,distance_air,state,international,distance_km,mode,distance_car,portland_native,total_emission_air,total_emission_car,ind_emission_gas,ind_emission_electric,state_emission,state_emission_per_cap,SSC_IWG,SSC_state_emission_per_cap,SSC_state_emission
+zip,num,distance_air,state,international,distance_km,mode,distance_car,portland_native,total_emission_air,total_emission_car,ind_emission_gas,ind_emission_electric,state_emission,state_emission_per_cap,SCC_IWG,SCC_state_emission_per_cap,SCC_state_emission
 01037,1,3992.45538,MA,no,3986.13,Fly,19.3121,Non-Native,1.58433405335616,0.019392020082803777,4.964004867013283,3.235054908769426,73.46101303191753,1.530437771498282,53,81.11320188940894,3893.433690691629
 01068,1,4004.3772400000003,MA,no,3998.04,Fly,19.3121,Non-Native,1.58906502890368,0.019392020082803777,4.964004867013283,3.235054908769426,73.46101303191753,1.530437771498282,53,81.11320188940894,3893.433690691629
 01072,1,3971.56224,MA,no,3965.25,Fly,19.3121,Non-Native,1.57604298682368,0.019392020082803777,4.964004867013283,3.235054908769426,73.46101303191753,1.530437771498282,53,81.11320188940894,3893.433690691629
