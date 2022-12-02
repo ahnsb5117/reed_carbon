@@ -76,19 +76,70 @@ df <- datr %>%
   filter(state != "NA") %>%
   ungroup() %>%
   rename(zip = ZIP,
-         num = NUMB)
+         num = NUMB) %>% 
+  mutate(SSC_IWG = "53") %>% 
+  mutate(SSC_state_emission_per_cap = as.numeric(SSC_IWG) * as.numeric(state_emission_per_cap)) %>% 
+  mutate(SSC_state_emission = as.numeric(SSC_IWG) * as.numeric(state_emission)) 
 
-### GRAPH
+
+### GRAPH in tonnes
+
+df %>% # CO2 emission in tonnes
+  select(state, state_emission) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, state_emission), y = state_emission)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2 emission in tonnes") +
+  xlab("State") +
+  coord_flip()
+
+# df %>%
+#   pivot_longer(10:11) %>%
+#   ggplot(aes(x = state, y = value, fill = name)) +
+#   geom_bar(stat = "identity") +
+#   theme_minimal() +
+#   ylab("CO2 emission in tonnes") +
+#   xlab("State") +
+#   coord_flip()
+
+ggsave("state_emissions.png")
+
+df %>% # CO2 emission in tonnes per capita
+  select(state, state_emission_per_cap) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, state_emission_per_cap), y = state_emission_per_cap)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2 emission in tonnes per capita") +
+  xlab("State") +
+  coord_flip()
+
+ggsave("state_emissions_per_cap.png")
+
+df %>% # CO2 emission in tonnes per capita
+  select(state, state_emission_per_cap) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, state_emission_per_cap), y = state_emission_per_cap)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2 emission in tonnes per capita") +
+  xlab("State") +
+  coord_flip()
+
+ggsave("state_emissions_per_cap.png")
+
+### GRAPH in SSC
 
 df %>%
   select(state, state_emission) %>%
   unique() %>%
   ggplot(aes(x = reorder(state, state_emission), y = state_emission)) +
-    geom_bar(stat = "identity") +
-    theme_minimal() +
-    ylab("CO2 emission in tonnes") +
-    xlab("State") +
-    coord_flip()
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2 emission in Social Cost of Carbon ($)") +
+  xlab("State") +
+  coord_flip()
 
 # df %>%
 #   pivot_longer(10:11) %>%
@@ -102,16 +153,29 @@ df %>%
 ggsave("state_emissions.png")
 
 df %>%
-  select(state, state_emission_per_cap) %>%
+  select(state, SSC_state_emission_per_cap) %>%
   unique() %>%
-  ggplot(aes(x = reorder(state, state_emission_per_cap), y = state_emission_per_cap)) +
-    geom_bar(stat = "identity") +
-    theme_minimal() +
-    ylab("CO2 emission in tonnes per capita") +
-    xlab("State") +
-    coord_flip()
+  ggplot(aes(x = reorder(state, SSC_state_emission_per_cap), y = SSC_state_emission_per_cap)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2 emission in Social Cost of Carbon per capita ($)") +
+  xlab("State") +
+  coord_flip()
 
-ggsave("state_emissions_per_cap.png")
+ggsave("SSC_state_emissions_per_cap.png")
+
+df %>%
+  select(state, SSC_state_emission_per_cap) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, SSC_state_emission_per_cap), y = SSC_state_emission_per_cap)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2 emission in tonnes per capita") +
+  xlab("State") +
+  coord_flip()
+
+ggsave("SSC_state_emissions_per_cap.png")
+
 
 # We can see that Oregon and Washington state has the lowest per capita emission,
 # Maine and Hawaii has the highest CO2 emission in grams 
