@@ -94,7 +94,6 @@ df %>% # CO2 emission in tonnes
   xlab("State") +
   coord_flip()
 
-ggsave("state_emissions.png")
 # df %>%
 #   pivot_longer(10:11) %>%
 #   ggplot(aes(x = state, y = value, fill = name)) +
@@ -103,6 +102,7 @@ ggsave("state_emissions.png")
 #   ylab("CO2 emission in tonnes") +
 #   xlab("State") +
 #   coord_flip()
+ggsave("state_emissions.png")
 
 
 df %>% # CO2 emission in tonnes per capita
