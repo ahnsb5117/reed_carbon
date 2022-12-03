@@ -79,7 +79,7 @@ df <- datr %>%
          num = NUMB) %>% 
   mutate(SCC_IWG = "53") %>% 
   mutate(SCC_state_emission_per_cap = as.numeric(SCC_IWG) * as.numeric(state_emission_per_cap)) %>% 
-  mutate(SCC_state_emission = as.numeric(SCC_IWG) * as.numeric(state_emission)) 
+  mutate(SCC_state_emission = as.numeric(SCC_IWG) * as.numeric(state_emission))
 
 
 ### GRAPH in tonnes
@@ -138,7 +138,7 @@ df %>%
   ggplot(aes(x = reorder(state, SCC_state_emission_per_cap), y = SCC_state_emission_per_cap)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  ylab("CO2 emission in tonnes per capita") +
+  ylab("CO2 emission in Social Cost of Carbon per capita ($)") +
   xlab("State") +
   coord_flip()
 
