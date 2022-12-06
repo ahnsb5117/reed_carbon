@@ -5,7 +5,6 @@ library(shinydashboardPlus)
 library(countrycode)
 library(airportr)
 library(zipcodeR)
-library(tidyverse)
 
 # Tools
 "%ni%" <- Negate("%in%")
@@ -47,18 +46,6 @@ body <- dashboardBody(
                        plotOutput("plot_prop")
                        # tableOutput("table")
                 ),
-              ),
-              br(),
-              fluidRow(
-                column(4,
-                       tableOutput("tonnes")
-                ),
-                column(4, 
-                       tableOutput("dollars")
-                ),
-                column(4,
-                       tableOutput("country_equiv")
-                )
               ),
               br(),
               h3("Please Input Your Personal Habits/Consumption Below to Calculate Your Carbon Footprint"),
@@ -239,34 +226,6 @@ server <- function(input, output) {
   
   output$table <- renderTable({
     dat1() %>% tibble() %>% print()
-  })
-  
-  output$tonnes <- renderTable({
-    dat <- dat1()
-    dat %>%
-      filter(Case == "User") %>%
-      summarize(tons = sum(Value)) %>% 
-      print()
-  })
-  
-  output$dollars <- renderTable({
-    dat <- dat1()
-    dat %>%
-      filter(Case == "User") %>%
-      summarize(dollars = sum(Value) * 52) %>% 
-      print()
-  })
-  
-  output$country_equiv <- renderTable({
-    dat <- dat1()
-    dat <- dat %>%
-      filter(Case == "User") %>%
-      summarize(sum = sum(Value))
-        
-    country_carbon %>%
-      slice(which.min(abs(value - dat$sum))) %>%
-      select(location) %>%
-      print
   })
   
 }
