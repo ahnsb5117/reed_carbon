@@ -79,7 +79,23 @@ df <- datr %>%
          num = NUMB) %>% 
   mutate(SCC_IWG = "53") %>% 
   mutate(SCC_state_emission_per_cap = as.numeric(SCC_IWG) * as.numeric(state_emission_per_cap)) %>% 
-  mutate(SCC_state_emission = as.numeric(SCC_IWG) * as.numeric(state_emission))
+  mutate(SCC_state_emission = as.numeric(SCC_IWG) * as.numeric(state_emission)) %>% 
+  mutate(total_emission_per_cap = (ind_emission_gas + ind_emission_electric + state_emission_per_cap)) %>% 
+  mutate(pct_ind_emission_gas = ind_emission_gas/total_emission_per_cap) %>% 
+  mutate(pct_ind_emission_electric = ind_emission_electric/total_emission_per_cap) %>% 
+  mutate(pct_state_emission_per_cap = state_emission_per_cap/total_emission_per_cap) %>% 
+  mutate(SCC_total_emission_per_cap = as.numeric(SCC_IWG) * total_emission_per_cap) %>% 
+  mutate(mean_pct_ind_emission_gas = mean(ind_emission_gas/total_emission_per_cap)) %>% 
+  mutate(mean_pct_ind_emission_electric = mean(ind_emission_electric/total_emission_per_cap)) %>% 
+  mutate(mean_pct_state_emission_per_cap = mean(state_emission_per_cap/total_emission_per_cap))
+  
+
+
+
+### calculate percentage of each gas and electrical usage, road and air travel
+
+df %>% 
+  mutate(pct_air_car_emission = (total_emission_air + total_emission_car)/state_emission)
 
 
 ### GRAPH in tonnes
