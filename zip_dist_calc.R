@@ -69,7 +69,7 @@ df <- datr %>%
          ind_emission_electric = (0.0004490564 * (11135877 + 10159517 + 10561212)) / (1471	+ 1385	+ 1566)
          # (0.0004490564 tonnes of CO2 / kWh * (11,135,877 + 10,159,517 + 10,561,212)) / (1,471	+ 1,385	+ 1,566) students = tons of CO2 per student
          # https://www.eia.gov/tools/faqs/faq.php?id=74&t=11 
-         ) %>%
+         ) %>% 
   group_by(state) %>%
   mutate(state_emission = sum(total_emission_air + total_emission_car, na.rm = T),
          state_emission_per_cap = sum(total_emission_air + total_emission_car, na.rm = T)/sum(NUMB)) %>%
