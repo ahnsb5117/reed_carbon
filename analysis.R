@@ -6,16 +6,16 @@ library(geodist)
 #No changes 
 
 ### IMPORT DATA
-raw_zipcode<- read_csv("zipcode_dat.csv") # Instutional Resource at Reed
+raw_zipcode<- read_csv("data/reed_zipcode.csv") # Instutional Resource at Reed
 
-zip_div_state <- read_csv("zip_div_state.csv") # State name 
+zip_div_state <- read_csv("data/zip_div_state.csv") # State name 
 #https://data.opendatasoft.com/explore/dataset/georef-united-states-of-america-zc-point%40public/table/
 
-portland_zipcode <- read_csv("portland_zipcode.csv",  col_types = cols(.default = col_character()))
+portland_zipcode <- read_csv("data/portland_zipcode.csv",  col_types = cols(.default = col_character()))
 #City of Portland Source
 #https://www.portlandoregon.gov/revenue/article/373203
 
-intl_flight <- read_csv("intl_flight.csv") %>% 
+intl_flight <- read_csv("data/intl_flight.csv") %>% 
   mutate(num_flight = ...1) %>% 
   select(-c(...1,...2,portland_native))
 
@@ -80,17 +80,20 @@ df <- datr %>%
   mutate(SCC_IWG = "53") %>% 
   mutate(SCC_state_emission_per_cap = as.numeric(SCC_IWG) * as.numeric(state_emission_per_cap)) %>% 
   mutate(SCC_state_emission = as.numeric(SCC_IWG) * as.numeric(state_emission)) %>% 
+  mutate(mean_total_emission_per_cap = (ind_emission_gas + ind_emission_electric + mean(state_emission_per_cap))) %>% 
   mutate(total_emission_per_cap = (ind_emission_gas + ind_emission_electric + state_emission_per_cap)) %>% 
-  mutate(pct_ind_emission_gas = ind_emission_gas/total_emission_per_cap) %>% 
-  mutate(pct_ind_emission_electric = ind_emission_electric/total_emission_per_cap) %>% 
-  mutate(pct_state_emission_per_cap = state_emission_per_cap/total_emission_per_cap) %>% 
-  mutate(SCC_total_emission_per_cap = as.numeric(SCC_IWG) * total_emission_per_cap) %>% 
-  mutate(mean_pct_ind_emission_gas = mean(ind_emission_gas/total_emission_per_cap)) %>% 
-  mutate(mean_pct_ind_emission_electric = mean(ind_emission_electric/total_emission_per_cap)) %>% 
-  mutate(mean_pct_state_emission_per_cap = mean(state_emission_per_cap/total_emission_per_cap))
-  
+  mutate(pct_ind_emission_gas = ind_emission_gas/mean_total_emission_per_cap) %>% 
+  mutate(pct_ind_emission_electric = ind_emission_electric/mean_total_emission_per_cap) %>% 
+  mutate(pct_state_emission_per_cap = state_emission_per_cap/mean_total_emission_per_cap) %>% 
+  mutate(SCC_total_emission_per_cap = as.numeric(SCC_IWG) * mean_total_emission_per_cap) %>% 
+  mutate(mean_pct_ind_emission_gas = mean(ind_emission_gas/mean_total_emission_per_cap)) %>% 
+  mutate(mean_pct_ind_emission_electric = mean(ind_emission_electric/mean_total_emission_per_cap)) %>% 
+  mutate(mean_pct_state_emission_per_cap = mean(state_emission_per_cap/mean_total_emission_per_cap))
 
-
+a <- df %>% 
+  mutate(s = mean(state_emission_per_cap)*1565) %>% 
+  mutate(l = (ind_emission_gas + ind_emission_electric)*1565) %>% 
+  select(s,l)
 
 ### calculate percentage of each gas and electrical usage, road and air travel
 
@@ -106,7 +109,7 @@ df %>% # CO2 emission in tonnes
   ggplot(aes(x = reorder(state, state_emission), y = state_emission)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  ylab("CO2 emission in tonnes") +
+  ylab("CO2e emission in tonnes") +
   xlab("State") +
   coord_flip()
 
@@ -118,7 +121,7 @@ df %>% # CO2 emission in tonnes
 #   ylab("CO2 emission in tonnes") +
 #   xlab("State") +
 #   coord_flip()
-ggsave("state_emissions.png")
+ggsave("graphs/state_emissions.png")
 
 
 df %>% # CO2 emission in tonnes per capita
@@ -127,11 +130,11 @@ df %>% # CO2 emission in tonnes per capita
   ggplot(aes(x = reorder(state, state_emission_per_cap), y = state_emission_per_cap)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  ylab("CO2 emission in tonnes per capita") +
+  ylab("CO2e emission in tonnes per capita") +
   xlab("State") +
   coord_flip()
 
-ggsave("state_emissions_per_cap.png")
+ggsave("graphs/state_emissions_per_cap.png")
 
 
 ### GRAPH in SCC
@@ -142,11 +145,11 @@ df %>%
   ggplot(aes(x = reorder(state, SCC_state_emission), y = SCC_state_emission)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  ylab("CO2 emission in Social Cost of Carbon ($)") +
+  ylab("CO2e emission in Social Cost of Carbon ($)") +
   xlab("State") +
   coord_flip()
 
-ggsave("SCC_state_emissions.png")
+ggsave("graphs/SCC_state_emissions.png")
 
 df %>%
   select(state, SCC_state_emission_per_cap) %>%
@@ -154,17 +157,17 @@ df %>%
   ggplot(aes(x = reorder(state, SCC_state_emission_per_cap), y = SCC_state_emission_per_cap)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  ylab("CO2 emission in Social Cost of Carbon per capita ($)") +
+  ylab("CO2e emission in Social Cost of Carbon per capita ($)") +
   xlab("State") +
   coord_flip()
 
-ggsave("SCC_state_emissions_per_cap.png")
+ggsave("graphs/SCC_state_emissions_per_cap.png")
 
 
 # We can see that Oregon and Washington state has the lowest per capita emission,
 # Maine and Hawaii has the highest CO2 emission in grams 
 
-write_csv(df,"VanLandschoot_Ahn_Data.csv")
+write_csv(df,"data/VanLandschoot_Ahn_Data.csv")
 
 library("xlsx")
-write.xlsx(df,"VanLandschoot_Ahn_Data.xlsx")
+write.xlsx(df,"data/VanLandschoot_Ahn_Data.xlsx")
