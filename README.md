@@ -1,1 +1,2 @@
-# econ351_proj
+# Reed Carbon Emission Analysis and Dashboard
+reed_carbon
