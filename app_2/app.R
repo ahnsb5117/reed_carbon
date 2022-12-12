@@ -245,6 +245,18 @@ server <- function(input, output) {
       housing <- (0.32 * 9.235)/input$home_roomates
     }
     
+    if(input$meat == "yes"){
+      meat <- 0
+    }else{
+      meat <- (input$meat_red * 0.00299 * 52 + input$meat_white * 0.00078 * 52)
+    }
+    
+    if(input$drive == "no"){
+      drive <- 0
+    }else{
+      drive <- (1/(input$drive_mpg / input$drive_mi) * 0.00887 * 52)
+    }
+    
     tibble(
       Case = c("User", "Oregonian", "American"),
       `Air Travel` = c((zip_distance(97202, input$travel_zip, units = "meters")$distance * 0.001 * 0.000251034585607 * 2
@@ -252,11 +264,10 @@ server <- function(input, output) {
                        * input$travel_freq, 
                        0,
                        0),
-      Food = c(input$meat_red * 0.00299 * 52 
-               + input$meat_white * 0.00078 * 52, 
+      Food = c(meat, 
                0.14 * 9.235,
                0.14 * 12.90),
-      Transportation = c(1/(input$drive_mpg / input$drive_mi) * 0.00887 * 52,
+      Transportation = c(drive,
                          0.28 * 9.235,
                          0.28 * 12.90),
       Housing = c(housing,
