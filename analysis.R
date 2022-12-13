@@ -71,8 +71,9 @@ df <- datr %>%
          # https://www.eia.gov/tools/faqs/faq.php?id=74&t=11 
          ) %>% 
   group_by(state) %>%
-  mutate(state_emission = sum(total_emission_air + total_emission_car, na.rm = T),
-         state_emission_per_cap = sum(total_emission_air + total_emission_car, na.rm = T)/sum(NUMB)) %>%
+  mutate(state_emission = sum(total_emission_air + total_emission_car, na.rm = T) + 8.2 *sum(NUMB),
+         state_emission_per_cap = sum(total_emission_air + total_emission_car, na.rm = T)/sum(NUMB) + 8.2,
+         travel_emission_per_cap = sum(total_emission_air + total_emission_car, na.rm = T)/sum(NUMB)) %>%
   filter(state != "NA") %>%
   ungroup() %>%
   rename(zip = ZIP,
@@ -127,15 +128,26 @@ ggsave("graphs/state_emissions.png")
 df %>% # CO2 emission in tonnes per capita
   select(state, state_emission_per_cap) %>%
   unique() %>%
-  ggplot(aes(x = reorder(state, state_emission_per_cap), y = state_emission_per_cap)) +
+  ggplot(aes(y = reorder(state, state_emission_per_cap), x = state_emission_per_cap)) +
   geom_bar(stat = "identity") +
   theme_minimal() +
-  ylab("CO2e emission in tonnes per capita") +
-  xlab("State") +
-  coord_flip()
+  xlab("CO2e emission in tonnes per capita") +
+  ylab("State") +
+  coord_cartesian(xlim = c(8.2,10))
 
 ggsave("graphs/state_emissions_per_cap.png")
 
+df %>% # CO2 emission from travel in tonnes per capita
+  select(state, travel_emission_per_cap) %>%
+  unique() %>%
+  ggplot(aes(x = reorder(state, travel_emission_per_cap), y = travel_emission_per_cap)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ylab("CO2e emissions from travel in tonnes per capita") +
+  xlab("State") +
+  coord_flip()
+
+ggsave("graphs/travel_emissions_per_cap.png")
 
 ### GRAPH in SCC
 
